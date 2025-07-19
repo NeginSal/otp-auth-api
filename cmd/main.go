@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/gin-gonic/gin"
+	// "github.com/gin-gonic/gin"
+	"github.com/NeginSal/otp-auth-api/internal/config"
 	"github.com/joho/godotenv"
 )
 
