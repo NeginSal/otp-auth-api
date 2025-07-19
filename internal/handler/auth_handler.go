@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/NeginSal/otp-auth-api/internal/service"
 	"github.com/NeginSal/otp-auth-api/internal/dto"
+	"github.com/NeginSal/otp-auth-api/internal/service"
+	"github.com/gin-gonic/gin"
 )
 
 type AuthHandler struct {
@@ -35,6 +35,17 @@ func (h *AuthHandler) SendOTP(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "OTP has been sent"})
 }
 
+// SendOTP godoc
+// @Summary      Send OTP to phone number
+// @Description  This API sends a one-time password (OTP) to the user's phone number.
+// @Tags         Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      dto.SendOTPRequest  true  "Phone number"
+// @Success      200      {object}  map[string]string
+// @Failure      400      {object}  map[string]string
+// @Failure      500      {object}  map[string]string
+// @Router       /send-otp [post]
 // POST /verify-otp
 func (h *AuthHandler) VerifyOTP(c *gin.Context) {
 	var request dto.VerifyOTPRequest
