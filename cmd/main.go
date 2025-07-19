@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 
-	// "github.com/gin-gonic/gin"
 	"github.com/NeginSal/otp-auth-api/internal/config"
+	"github.com/NeginSal/otp-auth-api/internal/routes"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -15,8 +17,9 @@ func main() {
 	}
 
 	client := config.ConnectDB()
-	defer client.Disconnect(nil)
+	defer client.Disconnect(context.TODO())
 
+	router := gin.Default()
 	routes.SetupRoutes(router, client)
 
 	port := config.GetEnv("PORT", "8080")

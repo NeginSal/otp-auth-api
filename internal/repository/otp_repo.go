@@ -28,7 +28,7 @@ func (r *OTPRepository) SaveOTP(ctx context.Context, otp *model.OTPRequest) erro
 func (r *OTPRepository) GetLatestByPhone(ctx context.Context, phone string) (*model.OTPRequest, error) {
 	var otp model.OTPRequest
 	filter := bson.M{"phone": phone}
-	opts := options.FindOne().SetSort(bson.D{{"created_at", -1}})
+	opts := options.FindOne().SetSort(bson.D{{Key: "created_at", Value: -1}})
 	err := r.Collection.FindOne(ctx, filter, opts).Decode(&otp)
 	if err != nil {
 		return nil, err
