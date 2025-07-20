@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo
+    container_name: otp-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/otp_auth
+      - DB_NAME=otp_auth
+      - JWT_SECRET=my_super_secret_key_123456
+      - PORT=8080
+      - OTP_EXPIRATION_MINUTES=5
+      - OTP_REQUEST_LIMIT=3
+
+volumes:
+  mongo_data:
