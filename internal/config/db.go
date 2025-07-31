@@ -10,10 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectDB() *mongo.Client {
+func ConnectMongoDB() *mongo.Client {
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
-		log.Fatal("MONGO_URI not set in .env file")
+		log.Fatal("MONGO_URI not set in .env")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -25,17 +25,9 @@ func ConnectDB() *mongo.Client {
 	}
 
 	if err := client.Ping(ctx, nil); err != nil {
-		log.Fatalf("Ping to MongoDB failed: %v", err)
+		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
 
-	log.Println("Connected to MongoDB Atlas successfully")
+	log.Println("✅ Connected to MongoDB")
 	return client
-}
-
-func GetEnv(key, fallback string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-	return value
 }

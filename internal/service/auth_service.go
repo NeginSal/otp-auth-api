@@ -20,6 +20,11 @@ type AuthService struct {
 	OTPRepo  *repository.OTPRepository
 }
 
+type CustomClaims struct {
+	Phone string `json:"phone"`
+	jwt.RegisteredClaims
+}
+
 func NewAuthService(userRepo *repository.UserRepository, otpRepo *repository.OTPRepository) *AuthService {
 	return &AuthService{
 		UserRepo: userRepo,
@@ -33,6 +38,17 @@ func (s *AuthService) SendOTP(ctx context.Context, phone string) (string, error)
 	expirationMinutes, _ := strconv.Atoi(os.Getenv("OTP_EXPIRATION_MINUTES"))
 	expiresAt := time.Now().Add(time.Duration(expirationMinutes) * time.Minute)
 
+	requestLimit, _ := strconv.Atoi(os.Getenv("OTP_REQUEST_LIMIT"))
+	requestWindow := time.Hour
+
+	count, err := s.OTPRepo.CountRecentRequests(ctx, phone, requestWindow)
+	if err != nil {
+		return "", err
+	}
+	if int(count) >= requestLimit {
+		return "", errors.New("Too many OTP requests in short time. Please try again later")
+	}
+
 	otp := &model.OTPRequest{
 		Phone:     phone,
 		OTP:       code,
@@ -40,7 +56,7 @@ func (s *AuthService) SendOTP(ctx context.Context, phone string) (string, error)
 		Verified:  false,
 	}
 
-	err := s.OTPRepo.SaveOTP(ctx, otp)
+	err = s.OTPRepo.SaveOTP(ctx, otp)
 	if err != nil {
 		return "", err
 	}
@@ -91,7 +107,6 @@ func (s *AuthService) VerifyOTP(ctx context.Context, phone string, code string) 
 
 // generateOTP generates a random 5-digit OTP code
 func generateOTP() string {
-	rand.Seed(time.Now().UnixNano())
 	return fmt.Sprintf("%05d", rand.Intn(100000))
 }
 
@@ -99,9 +114,12 @@ func generateOTP() string {
 func generateJWT(phone string) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 
-	claims := jwt.MapClaims{
-		"phone": phone,
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+	claims := CustomClaims{
+		Phone: phone,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -42,3 +42,12 @@ func (r *OTPRepository) MarkVerified(ctx context.Context, otpID string) error {
 	_, err := r.Collection.UpdateOne(ctx, filter, update)
 	return err
 }
+
+func (r *OTPRepository) CountRecentRequests(ctx context.Context, phone string, since time.Duration) (int64, error) {
+	from := time.Now().Add(-since)
+	filter := bson.M{
+		"phone":      phone,
+		"created_at": bson.M{"$gte": from},
+	}
+	return r.Collection.CountDocuments(ctx, filter)
+}

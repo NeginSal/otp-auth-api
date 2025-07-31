@@ -15,32 +15,30 @@ import (
 	"github.com/NeginSal/otp-auth-api/internal/config"
 	"github.com/NeginSal/otp-auth-api/internal/routes"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 
-	_ "github.com/NeginSal/otp-auth-api/docs"
 	"github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Failed to load .env file")
-	}
+	// Load environment variables
+	config.LoadEnv()
 
-	client := config.ConnectDB()
-	defer client.Disconnect(context.TODO())
+	// Connect to MongoDB
+	client := config.ConnectMongoDB()
+	defer client.Disconnect(context.Background())
 
+	// Setup router
 	router := gin.Default()
 	routes.SetupRoutes(router, client)
+
+	// Swagger
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	port := config.GetEnv("PORT", "8080")
 	log.Println("Server running on port " + port)
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	err = router.Run(":" + port)
-	if err != nil {
-		log.Fatal("Failed to start server")
+	if err := router.Run(":" + port); err != nil {
+		log.Fatal("Failed to start server:", err)
 	}
 }
